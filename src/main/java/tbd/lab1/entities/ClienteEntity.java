@@ -17,4 +17,6 @@ public class ClienteEntity {
     private String email;
 
     private String telefono;
+
+    private String location;
 }
