@@ -12,12 +12,10 @@ public class AlmacenEntity {
 
         private String nombre;
 
-        private String direccion;
+        private String posicion;
 
-        private String email;
+        private String longitud;
 
-        private String telefono;
-
-        private Point location;
+        private String latitud;
 
 }

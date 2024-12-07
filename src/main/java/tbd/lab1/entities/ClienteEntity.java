@@ -18,5 +18,9 @@ public class ClienteEntity {
 
     private String telefono;
 
-    private String location;
+    private String posicion;
+
+    private String longitud;
+
+    private String latitud;
 }
