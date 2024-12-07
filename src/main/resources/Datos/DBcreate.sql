@@ -21,8 +21,22 @@ CREATE TABLE cliente (
                          nombre VARCHAR(255) NOT NULL,
                          direccion VARCHAR(255),
                          email VARCHAR(100),
-                         telefono VARCHAR(20)
+                         telefono VARCHAR(20),
+                         posicion text,
+                         latitud text,
+                         longitud text
 );
+
+CREATE TABLE almacen (
+                         id_almacen SERIAL PRIMARY KEY,
+                         nombre VARCHAR(255) NOT NULL,
+                         posicion text,  
+                         longitud text,
+                         latitud text
+);
+
+
+
 
 -- Crear tabla orden
 CREATE TABLE orden (
