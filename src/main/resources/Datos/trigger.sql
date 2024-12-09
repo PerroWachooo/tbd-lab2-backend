@@ -140,7 +140,6 @@ CREATE TRIGGER trg_insertar_pos_almacen
 
 
 
--- Creamos el metodo para encontrar las ordenes cercanas
 CREATE OR REPLACE FUNCTION obtener_ordenes_cercanas(id_almacen_input INTEGER, radio_km DOUBLE PRECISION DEFAULT 10.0)
 RETURNS TABLE (
     id_orden INTEGER,
