@@ -11,19 +11,25 @@ CREATE DATABASE ecommercedb
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-
 -- Usar la base de datos creada
 \c ecommercedb;
 
 -- Creación de la base de datos y tablas
 
 CREATE TABLE IF NOT EXISTS usuario (
-                                       id_usuario SERIAL PRIMARY KEY,
-                                       nombre VARCHAR(255) NOT NULL,
+    id_usuario SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     contrasena VARCHAR(255) NOT NULL
     );
 
+CREATE TABLE if NOT EXISTS almacen (
+    id_almacen SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    posicion text,
+    longitud text,
+    latitud text
+    );
 
 -- Tabla: categoria
 CREATE TABLE categoria (
