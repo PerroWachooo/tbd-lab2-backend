@@ -32,8 +32,6 @@ CREATE TABLE IF NOT EXISTS pos_usuario (
     geom GEOMETRY(Point, 4326)
     );
 
-ALTER TABLE pos_usuario OWNER TO postgres;
-
 CREATE TABLE if NOT EXISTS almacen (
     id_almacen SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
@@ -77,14 +75,16 @@ CREATE TABLE cliente (
 );
 
 -- Tabla: orden
-CREATE TABLE orden (
-                       id_orden SERIAL PRIMARY KEY,
-                       fecha_orden TIMESTAMP NOT NULL,
-                       estado VARCHAR(50) NOT NULL,
-                       id_cliente INTEGER NOT NULL,
-                       total DECIMAL(10, 2) NOT NULL,
-                       CONSTRAINT fk_cliente FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
-);
+CREATE TABLE IF NOT EXISTS orden (
+    id_orden SERIAL PRIMARY KEY,
+    fecha_orden TIMESTAMP NOT NULL,
+    estado VARCHAR(50) NOT NULL,
+    id_cliente INTEGER NOT NULL,
+    id_almacen INTEGER NOT NULL,
+    total NUMERIC(10, 2) NOT NULL,
+    FOREIGN KEY (id_cliente) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_almacen) REFERENCES almacen(id_almacen)
+    );
 
 -- Tabla: detalle_orden
 CREATE TABLE detalle_orden (

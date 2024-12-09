@@ -137,3 +137,49 @@ CREATE TRIGGER trg_insertar_pos_almacen
     AFTER INSERT OR UPDATE ON almacen
                         FOR EACH ROW
                         EXECUTE FUNCTION insertar_pos_almacen();
+
+
+
+-- Creamos el metodo para encontrar las ordenes cercanas
+CREATE OR REPLACE FUNCTION obtener_ordenes_cercanas(id_almacen_input INTEGER, radio_km DOUBLE PRECISION DEFAULT 10.0)
+RETURNS TABLE (
+    id_orden INTEGER,
+    fecha_orden TIMESTAMP,
+    estado VARCHAR,
+    id_cliente INTEGER,
+    id_almacen INTEGER,
+    total NUMERIC
+) AS
+$$
+DECLARE
+geom_almacen GEOGRAPHY;
+BEGIN
+    -- Obtener la geometría del almacén específico
+SELECT pa.geom::GEOGRAPHY INTO geom_almacen
+FROM almacen a
+         JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
+WHERE a.id_almacen = id_almacen_input;
+
+-- Verificar si se encontró el almacén
+IF geom_almacen IS NULL THEN
+        RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
+END IF;
+
+RETURN QUERY
+SELECT
+    o.id_orden,
+    o.fecha_orden,
+    o.estado,
+    o.id_cliente,
+    o.id_almacen,
+    o.total
+FROM
+    orden o
+        JOIN usuario c ON o.id_cliente = c.id_usuario
+        JOIN pos_usuario pc ON c.id_usuario = pc.id_usuario::INTEGER
+WHERE
+    ST_DWithin(geom_almacen, pc.geom::GEOGRAPHY, radio_km * 1000); -- Asegurar que la unidad es metros
+END;
+$$
+
+LANGUAGE plpgsql;
