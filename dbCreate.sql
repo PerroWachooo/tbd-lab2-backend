@@ -20,16 +20,34 @@ CREATE TABLE IF NOT EXISTS usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    contrasena VARCHAR(255) NOT NULL
+    contrasena VARCHAR(255) NOT NULL,
+    latitud text NOT NULL,
+    longitud text NOT NULL
     );
+
+CREATE TABLE IF NOT EXISTS pos_usuario (
+    id_usuario VARCHAR(20) NOT NULL PRIMARY KEY,
+    latitud DOUBLE PRECISION,
+    longitud DOUBLE PRECISION,
+    geom GEOMETRY(Point, 4326)
+    );
+
+ALTER TABLE pos_usuario OWNER TO postgres;
 
 CREATE TABLE if NOT EXISTS almacen (
     id_almacen SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    posicion text,
     longitud text,
     latitud text
     );
+
+CREATE TABLE IF NOT EXISTS pos_almacen (
+                                           id_almacen INTEGER NOT NULL PRIMARY KEY,
+                                           latitud DOUBLE PRECISION,
+                                           longitud DOUBLE PRECISION,
+                                           geom GEOMETRY(Point, 4326)
+    );
+
 
 -- Tabla: categoria
 CREATE TABLE categoria (

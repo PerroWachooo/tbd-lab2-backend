@@ -70,3 +70,70 @@ CREATE TRIGGER trigger_gestionar_devolucion
 
 INSERT INTO devoluciones (id_orden, id_producto, cantidad)
 VALUES (1, 2, 3);
+
+
+---------------------------------- #################################
+-- COSAS DEL LABORATORIO 2
+
+
+-- Creamos un trigger que almacene la posicion del usuario segun su geometría
+-- longitud y latitud.
+CREATE OR REPLACE FUNCTION insertar_pos_usuario() RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+INSERT INTO pos_usuario (id_usuario, latitud, longitud, geom)
+VALUES (
+           NEW.id_usuario,
+           CAST(NEW.latitud AS DOUBLE PRECISION),
+           CAST(NEW.longitud AS DOUBLE PRECISION),
+           ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
+       )
+    ON CONFLICT (id_usuario) DO UPDATE
+                                     SET
+                                     latitud = EXCLUDED.latitud,
+                                     longitud = EXCLUDED.longitud,
+                                     geom = EXCLUDED.geom;
+
+RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION insertar_pos_usuario() OWNER TO postgres;
+
+
+-- Cada vez que se haga un post o un update, se activa el metodo
+CREATE TRIGGER trg_insertar_pos_usuario
+    AFTER INSERT OR UPDATE
+    ON usuarios
+    FOR EACH ROW
+    EXECUTE FUNCTION insertar_pos_usuario();
+
+-- Creamos el trigger de almacen
+CREATE OR REPLACE FUNCTION insertar_pos_almacen() RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+INSERT INTO pos_almacen (id_almacen, latitud, longitud, geom)
+VALUES (
+           NEW.id_almacen,
+           CAST(NEW.latitud AS DOUBLE PRECISION),
+           CAST(NEW.longitud AS DOUBLE PRECISION),
+           ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
+       )
+    ON CONFLICT (id_almacen) DO UPDATE
+                                    SET
+                                        latitud = EXCLUDED.latitud,
+                                    longitud = EXCLUDED.longitud,
+                                    geom = EXCLUDED.geom;
+
+RETURN NEW;
+END;
+$$;
+
+-- Para que se active
+CREATE TRIGGER trg_insertar_pos_almacen
+    AFTER INSERT OR UPDATE ON almacen
+                        FOR EACH ROW
+                        EXECUTE FUNCTION insertar_pos_almacen();
