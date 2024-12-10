@@ -159,7 +159,7 @@ FROM almacen a
          JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
 WHERE a.id_almacen = id_almacen_input;
 
--- Verificar si se encontró el almacén
+-- Se verifica si se encuentra el almacen.
 IF geom_almacen IS NULL THEN
         RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
 END IF;
