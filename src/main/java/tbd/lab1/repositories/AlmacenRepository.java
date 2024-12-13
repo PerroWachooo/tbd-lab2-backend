@@ -121,4 +121,18 @@ public class AlmacenRepository implements AlmacenRepositoryInt{
             return false; // Devuelve false si ocurre un error
         }
     }
+
+    public List<AlmacenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
+        String sql = "SELECT * FROM obtener_ordenes_cercanas(:idAlmacen, :radioKm)";
+
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .addParameter("idAlmacen", idAlmacen)
+                    .addParameter("radioKm", radioKm)
+                    .executeAndFetch(AlmacenEntity.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
 }

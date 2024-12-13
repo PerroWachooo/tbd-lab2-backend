@@ -53,5 +53,24 @@ public class AlmacenController {
         return ResponseEntity.noContent().build();
     }
 
-    
+    @GetMapping("/km_almacen/{id}")
+    public ResponseEntity<List<AlmacenEntity>> Conseguir_almacen_cercano() {
+        try {
+            List<AlmacenEntity> almacenes = almacenService.getAllAlmacenes();
+            return ResponseEntity.ok(almacenes);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/ordenes-cercanas")
+    public ResponseEntity<List<AlmacenEntity>> obtenerOrdenesCercanas(@RequestParam int idAlmacen, @RequestParam double radioKm) {
+        try {
+            List<AlmacenEntity> ordenesCercanas = almacenService.obtenerOrdenesCercanas(idAlmacen, radioKm);
+            return ResponseEntity.ok(ordenesCercanas);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

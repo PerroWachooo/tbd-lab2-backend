@@ -51,4 +51,8 @@ public class AlmacenService {
         return false;
     }
 
+    public List<AlmacenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
+        return almacenRepository.obtenerOrdenesCercanas(idAlmacen, radioKm);
+    }
+
 }
