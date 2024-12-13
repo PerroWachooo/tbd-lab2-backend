@@ -63,8 +63,8 @@ public class AlmacenController {
         }
     }
 
-    @GetMapping("/ordenes-cercanas")
-    public ResponseEntity<List<AlmacenEntity>> obtenerOrdenesCercanas(@RequestParam int idAlmacen, @RequestParam double radioKm) {
+    @GetMapping("/ordenes-cercanas/{idAlmacen}/{radioKm}")
+    public ResponseEntity<List<AlmacenEntity>> obtenerOrdenesCercanas(@PathVariable int idAlmacen, @PathVariable double radioKm) {
         try {
             List<AlmacenEntity> ordenesCercanas = almacenService.obtenerOrdenesCercanas(idAlmacen, radioKm);
             return ResponseEntity.ok(ordenesCercanas);
