@@ -16,7 +16,7 @@ public class ClienteRepository implements ClienteRepositoryInt {
 
     // Guarda un cliente usando sql2o
     public ClienteEntity saveCliente(ClienteEntity cliente) {
-        String sql = "INSERT INTO cliente (nombre, direccion, email, telefono) VALUES (:nombre, :direccion, :email, :telefono)";
+        String sql = "INSERT INTO cliente (nombre, direccion, email, telefono, posicion, longitud, latitud) VALUES (:nombre, :direccion, :email, :telefono, :posicion, :longitud, :latitud)";
         try (Connection con = sql2o.open()) {
             // Insertar el cliente en la base de datos
             Integer id = (Integer) con.createQuery(sql, true)  // true indica que se quiere obtener el ID generado
@@ -24,6 +24,9 @@ public class ClienteRepository implements ClienteRepositoryInt {
                     .addParameter("direccion", cliente.getDireccion())
                     .addParameter("email", cliente.getEmail())
                     .addParameter("telefono", cliente.getTelefono())
+                    .addParameter("posicion", cliente.getPosicion())
+                    .addParameter("longitud", cliente.getLongitud())
+                    .addParameter("latitud", cliente.getLatitud())
                     .executeUpdate()
                     .getKey(); // Obtener el ID generado
 
@@ -79,13 +82,16 @@ public class ClienteRepository implements ClienteRepositoryInt {
 
     // Actualiza un cliente existente
     public boolean updateCliente(ClienteEntity cliente) {
-        String sql = "UPDATE cliente SET nombre = :nombre, direccion = :direccion, email = :email, telefono = :telefono WHERE id_cliente = :id";
+        String sql = "UPDATE cliente SET nombre = :nombre, direccion = :direccion, email = :email, telefono = :telefono, telefono = :telefono, posicion = :posicion, longitud = :longitud, latitud = :latitud WHERE id_cliente = :id";
         try (Connection con = sql2o.open()) {
             int affectedRows = con.createQuery(sql)
                     .addParameter("nombre", cliente.getNombre())
                     .addParameter("direccion", cliente.getDireccion())
                     .addParameter("email", cliente.getEmail())
                     .addParameter("telefono", cliente.getTelefono())
+                    .addParameter("posicion", cliente.getPosicion())
+                    .addParameter("longitud", cliente.getLongitud())
+                    .addParameter("latitud", cliente.getLatitud())
                     .addParameter("id", cliente.getId_cliente())
                     .executeUpdate()
                     .getResult(); // Obtener el número de filas afectadas

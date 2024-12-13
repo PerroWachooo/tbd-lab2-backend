@@ -70,3 +70,115 @@ CREATE TRIGGER trigger_gestionar_devolucion
 
 INSERT INTO devoluciones (id_orden, id_producto, cantidad)
 VALUES (1, 2, 3);
+
+
+---------------------------------- #################################
+-- COSAS DEL LABORATORIO 2
+
+
+-- Creamos un trigger que almacene la posicion del usuario segun su geometría
+-- longitud y latitud.
+CREATE OR REPLACE FUNCTION insertar_pos_usuario() RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+INSERT INTO pos_usuario (id_cliente, latitud, longitud, geom)
+VALUES (
+           NEW.id_cliente,
+           CAST(NEW.latitud AS DOUBLE PRECISION),
+           CAST(NEW.longitud AS DOUBLE PRECISION),
+           ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
+       )
+    ON CONFLICT (id_cliente) DO UPDATE
+                                     SET
+                                     latitud = EXCLUDED.latitud,
+                                     longitud = EXCLUDED.longitud,
+                                     geom = EXCLUDED.geom;
+
+RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION insertar_pos_usuario() OWNER TO postgres;
+
+
+-- Cada vez que se haga un post o un update, se activa el metodo
+CREATE TRIGGER trg_insertar_pos_usuario
+    AFTER INSERT OR UPDATE
+    ON cliente
+    FOR EACH ROW
+    EXECUTE FUNCTION insertar_pos_usuario();
+
+-- Creamos el trigger de almacen
+CREATE OR REPLACE FUNCTION insertar_pos_almacen() RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+INSERT INTO pos_almacen (id_almacen, latitud, longitud, geom)
+VALUES (
+           NEW.id_almacen,
+           CAST(NEW.latitud AS DOUBLE PRECISION),
+           CAST(NEW.longitud AS DOUBLE PRECISION),
+           ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
+       )
+    ON CONFLICT (id_almacen) DO UPDATE
+                                    SET
+                                        latitud = EXCLUDED.latitud,
+                                    longitud = EXCLUDED.longitud,
+                                    geom = EXCLUDED.geom;
+
+RETURN NEW;
+END;
+$$;
+
+-- Para que se active
+CREATE TRIGGER trg_insertar_pos_almacen
+    AFTER INSERT OR UPDATE ON almacen
+                        FOR EACH ROW
+                        EXECUTE FUNCTION insertar_pos_almacen();
+
+
+
+CREATE OR REPLACE FUNCTION obtener_ordenes_cercanas(id_almacen_input INTEGER, radio_km DOUBLE PRECISION DEFAULT 10.0)
+RETURNS TABLE (
+    id_orden INTEGER,
+    fecha_orden TIMESTAMP,
+    estado VARCHAR,
+    id_cliente INTEGER,
+    id_almacen INTEGER,
+    total NUMERIC
+) AS
+$$
+DECLARE
+geom_almacen GEOGRAPHY;
+BEGIN
+    -- Obtener la geometría del almacén específico
+SELECT pa.geom::GEOGRAPHY INTO geom_almacen
+FROM almacen a
+         JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
+WHERE a.id_almacen = id_almacen_input;
+
+-- Se verifica si se encuentra el almacen.
+IF geom_almacen IS NULL THEN
+        RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
+END IF;
+
+RETURN QUERY
+SELECT
+    o.id_orden,
+    o.fecha_orden,
+    o.estado,
+    o.id_cliente,
+    o.id_almacen,
+    o.total
+FROM
+    orden o
+        JOIN usuario c ON o.id_cliente = c.id_usuario
+        JOIN pos_usuario pc ON c.id_usuario = pc.id_usuario::INTEGER
+WHERE
+    ST_DWithin(geom_almacen, pc.geom::GEOGRAPHY, radio_km * 1000); -- Asegurar que la unidad es metros
+END;
+$$
+
+LANGUAGE plpgsql;

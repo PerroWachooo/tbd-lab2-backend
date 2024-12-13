@@ -83,14 +83,14 @@ LANGUAGE plpgsql
 AS
 $$
 BEGIN
-INSERT INTO pos_usuario (id_usuario, latitud, longitud, geom)
+INSERT INTO pos_usuario (id_cliente, latitud, longitud, geom)
 VALUES (
-           NEW.id_usuario,
+           NEW.id_cliente,
            CAST(NEW.latitud AS DOUBLE PRECISION),
            CAST(NEW.longitud AS DOUBLE PRECISION),
            ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
        )
-    ON CONFLICT (id_usuario) DO UPDATE
+    ON CONFLICT (id_cliente) DO UPDATE
                                      SET
                                      latitud = EXCLUDED.latitud,
                                      longitud = EXCLUDED.longitud,
@@ -106,7 +106,7 @@ ALTER FUNCTION insertar_pos_usuario() OWNER TO postgres;
 -- Cada vez que se haga un post o un update, se activa el metodo
 CREATE TRIGGER trg_insertar_pos_usuario
     AFTER INSERT OR UPDATE
-    ON usuarios
+    ON cliente
     FOR EACH ROW
     EXECUTE FUNCTION insertar_pos_usuario();
 

@@ -20,13 +20,11 @@ CREATE TABLE IF NOT EXISTS usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    contrasena VARCHAR(255) NOT NULL,
-    latitud text NOT NULL,
-    longitud text NOT NULL
+    contrasena VARCHAR(255) NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS pos_usuario (
-    id_usuario VARCHAR(20) NOT NULL PRIMARY KEY,
+    id_cliente VARCHAR(20) NOT NULL PRIMARY KEY,
     latitud DOUBLE PRECISION,
     longitud DOUBLE PRECISION,
     geom GEOMETRY(Point, 4326)
@@ -35,6 +33,7 @@ CREATE TABLE IF NOT EXISTS pos_usuario (
 CREATE TABLE if NOT EXISTS almacen (
     id_almacen SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
+    posicion text,
     longitud text,
     latitud text
     );
@@ -71,7 +70,10 @@ CREATE TABLE cliente (
                          nombre VARCHAR(255) NOT NULL,
                          direccion VARCHAR(255),
                          email VARCHAR(100),
-                         telefono VARCHAR(20)
+                         telefono VARCHAR(20),
+                         posicion text NOT NULL,
+                         latitud text NOT NULL,
+                         longitud text NOT NULL
 );
 
 -- Tabla: orden
@@ -82,7 +84,7 @@ CREATE TABLE IF NOT EXISTS orden (
     id_cliente INTEGER NOT NULL,
     id_almacen INTEGER NOT NULL,
     total NUMERIC(10, 2) NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
     FOREIGN KEY (id_almacen) REFERENCES almacen(id_almacen)
     );
 
