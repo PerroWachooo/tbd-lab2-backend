@@ -182,3 +182,115 @@ CREATE TRIGGER trg_insertar_pos_almacen
     $$
 
     LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION obtener_almacen_mas_cercano(id_cliente_input INTEGER)
+RETURNS TABLE (
+    id_almacen INTEGER,
+    nombre_almacen VARCHAR,
+    distancia_km DOUBLE PRECISION
+) AS
+$$
+DECLARE
+geom_cliente GEOGRAPHY;
+BEGIN
+    -- Obtener la geometría del cliente específico
+SELECT pu.geom::GEOGRAPHY INTO geom_cliente
+FROM usuario u
+         JOIN pos_usuario pu ON u.id_usuario::VARCHAR = pu.id_usuario
+WHERE u.id_usuario = id_cliente_input;
+
+-- Verificar si se encontró el cliente
+IF geom_cliente IS NULL THEN
+        RAISE EXCEPTION 'Cliente no encontrado con el ID: %', id_cliente_input;
+END IF;
+
+RETURN QUERY
+SELECT
+    a.id_almacen,
+    a.nombre,
+    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY) / 1000 AS distancia_km -- Calcular distancia en km
+FROM
+    almacen a
+        JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
+ORDER BY distancia_km -- Ordenar por distancia ascendente
+    LIMIT 1; -- Limitar a un solo resultado (el más cercano)
+END;
+$$
+
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_distancia_cliente_almacen(id_cliente_input INTEGER, id_almacen_input INTEGER)
+RETURNS DOUBLE PRECISION AS
+$$
+DECLARE
+geom_cliente GEOGRAPHY;
+    geom_almacen GEOGRAPHY;
+    distancia_km DOUBLE PRECISION;
+BEGIN
+    -- Obtener la geometría del cliente
+SELECT pu.geom::GEOGRAPHY INTO geom_cliente
+FROM usuario u
+         JOIN pos_usuario pu ON u.id_usuario::VARCHAR = pu.id_usuario
+WHERE u.id_usuario = id_cliente_input;
+
+-- Verificar si se encontró el cliente
+IF geom_cliente IS NULL THEN
+        RAISE EXCEPTION 'Cliente no encontrado con el ID: %', id_cliente_input;
+END IF;
+
+    -- Obtener la geometría del almacén
+SELECT pa.geom::GEOGRAPHY INTO geom_almacen
+FROM almacen a
+         JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
+WHERE a.id_almacen = id_almacen_input;
+
+-- Verificar si se encontró el almacén
+IF geom_almacen IS NULL THEN
+        RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
+END IF;
+
+    -- Calcular la distancia en kilómetros
+    distancia_km := ST_Distance(geom_cliente, geom_almacen) / 1000;
+
+RETURN distancia_km;
+END;
+$$
+
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_almacen_mas_cercano(id_cliente_input INTEGER)
+RETURNS TABLE (
+    id_almacen INTEGER,
+    nombre_almacen VARCHAR,
+    distancia_km DOUBLE PRECISION
+) AS
+$$
+DECLARE
+geom_cliente GEOGRAPHY;
+BEGIN
+    -- Obtener la geometría del cliente específico
+SELECT pu.geom::GEOGRAPHY INTO geom_cliente
+FROM usuario u
+         JOIN pos_usuario pu ON u.id_usuario::VARCHAR = pu.id_usuario
+WHERE u.id_usuario = id_cliente_input;
+
+-- Verificar si se encontró el cliente
+IF geom_cliente IS NULL THEN
+        RAISE EXCEPTION 'Cliente no encontrado con el ID: %', id_cliente_input;
+END IF;
+
+RETURN QUERY
+SELECT
+    a.id_almacen,
+    a.nombre,
+    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY) / 1000 AS distancia_km -- Calcular distancia en km
+FROM
+    almacen a
+        JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
+ORDER BY distancia_km -- Ordenar por distancia ascendente
+    LIMIT 1; -- Limitar a un solo resultado (el más cercano)
+END;
+$$
+
+LANGUAGE plpgsql;
