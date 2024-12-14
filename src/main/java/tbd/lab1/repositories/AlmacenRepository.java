@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 import tbd.lab1.entities.AlmacenEntity;
+import tbd.lab1.entities.OrdenEntity;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -122,17 +123,17 @@ public class AlmacenRepository implements AlmacenRepositoryInt{
         }
     }
 
-    public List<AlmacenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
+    public List<OrdenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
         String sql = "SELECT * FROM obtener_ordenes_cercanas(:idAlmacen, :radioKm)";
-
         try (Connection con = sql2o.open()) {
             return con.createQuery(sql)
                     .addParameter("idAlmacen", idAlmacen)
                     .addParameter("radioKm", radioKm)
-                    .executeAndFetch(AlmacenEntity.class);
+                    .executeAndFetch(OrdenEntity.class);
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
+
 }

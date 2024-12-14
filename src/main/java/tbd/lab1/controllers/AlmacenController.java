@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tbd.lab1.entities.AlmacenEntity;
+import tbd.lab1.entities.OrdenEntity;
 import tbd.lab1.services.AlmacenService;
 import java.util.List;
 
@@ -64,13 +65,15 @@ public class AlmacenController {
     }
 
     @GetMapping("/ordenes-cercanas/{idAlmacen}/{radioKm}")
-    public ResponseEntity<List<AlmacenEntity>> obtenerOrdenesCercanas(@PathVariable int idAlmacen, @PathVariable double radioKm) {
+    public ResponseEntity<List<OrdenEntity>> obtenerOrdenesCercanas(@PathVariable int idAlmacen, @PathVariable double radioKm) {
         try {
-            List<AlmacenEntity> ordenesCercanas = almacenService.obtenerOrdenesCercanas(idAlmacen, radioKm);
+            List<OrdenEntity> ordenesCercanas = almacenService.obtenerOrdenesCercanas(idAlmacen, radioKm);
             return ResponseEntity.ok(ordenesCercanas);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 
 }

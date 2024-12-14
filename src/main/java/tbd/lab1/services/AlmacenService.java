@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tbd.lab1.entities.AlmacenEntity;
-import tbd.lab1.entities.UsuarioEntity;
+import tbd.lab1.entities.OrdenEntity;
 import tbd.lab1.repositories.AlmacenRepository;
 
 
@@ -51,7 +51,7 @@ public class AlmacenService {
         return false;
     }
 
-    public List<AlmacenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
+    public List<OrdenEntity> obtenerOrdenesCercanas(int idAlmacen, double radioKm) {
         return almacenRepository.obtenerOrdenesCercanas(idAlmacen, radioKm);
     }
 

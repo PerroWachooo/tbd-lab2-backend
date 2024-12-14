@@ -4,6 +4,7 @@ import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import tbd.lab1.entities.AlmacenEntity;
 import tbd.lab1.entities.ClienteEntity;
 
 import java.util.List;
@@ -100,6 +101,31 @@ public class ClienteRepository implements ClienteRepositoryInt {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<AlmacenEntity> getAlmacenMasCercano(Integer idCliente) {
+        String sql = "SELECT id_almacen, nombre, posicion, latitud, longitud FROM obtener_almacen_mas_cercano3(:id_cliente_input)";
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .addParameter("id_cliente_input", idCliente)
+                    .executeAndFetch(AlmacenEntity.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Double obtenerDistanciaClienteAlmacen(Integer idCliente, Integer idAlmacen) {
+        String sql = "SELECT obtener_distancia_cliente_almacen(:id_cliente_input, :id_almacen_input)";
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .addParameter("id_cliente_input", idCliente)
+                    .addParameter("id_almacen_input", idAlmacen)
+                    .executeScalar(Double.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

@@ -164,13 +164,13 @@ IF geom_almacen IS NULL THEN
         RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
 END IF;
 
-    -- Devolver las órdenes cercanas al almacén
+   -- Devolver las órdenes cercanas al almacén
 RETURN QUERY
 SELECT
     o.id_orden,
     o.fecha_orden,
     o.estado,
-    c.id_cliente,  -- Cambiar esto para referirse correctamente al ID del cliente
+    o.id_cliente,  -- Asegúrate de que estás usando el ID correcto aquí
     o.id_almacen,
     o.total
 FROM
@@ -194,8 +194,10 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION obtener_almacen_mas_cercano(id_cliente_input INTEGER)
 RETURNS TABLE (
     id_almacen INTEGER,
-    nombre_almacen VARCHAR,
-    distancia_km DOUBLE PRECISION
+    nombre VARCHAR,
+    posicion TEXT,
+    latitud DOUBLE PRECISION,
+    longitud DOUBLE PRECISION
 ) AS
 $$
 DECLARE
@@ -203,8 +205,8 @@ geom_cliente GEOGRAPHY;
 BEGIN
     -- Obtener la geometría del cliente específico
 SELECT pu.geom::GEOGRAPHY INTO geom_cliente
-FROM cliente c  -- Cambiar a la tabla cliente
-         JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente  -- Asegúrate de usar el id_cliente aquí
+FROM cliente c
+         JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente
 WHERE c.id_cliente = id_cliente_input;
 
 -- Verificar si se encontró el cliente
@@ -217,19 +219,21 @@ RETURN QUERY
 SELECT
     a.id_almacen,
     a.nombre,
-    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY) / 1000 AS distancia_km -- Calcular distancia en km
+    a.posicion,
+    pa.latitud,
+    pa.longitud
 FROM
     almacen a
         JOIN
     pos_almacen pa ON a.id_almacen = pa.id_almacen
 ORDER BY
-    distancia_km -- Ordenar por distancia ascendente
-    LIMIT 1; -- Limitar a un solo resultado (el más cercano)
+    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY) -- Ordenar por distancia ascendente
+    LIMIT 1;
 END;
 $$
 LANGUAGE plpgsql;
 
-LANGUAGE plpgsql;
+
 
 
 -- REQUERIMIENTO 21
