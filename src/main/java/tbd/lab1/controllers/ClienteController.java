@@ -65,6 +65,7 @@ public class ClienteController {
         }
     }
 
+    //RF 15: Almacen más cercano
     @GetMapping("/{id}/almacen-mas-cercano")
     public ResponseEntity<List<AlmacenEntity>> getAlmacenMasCercano(@PathVariable Integer id) {
         List<AlmacenEntity> almacenMasCercano = clienteService.findAlmacenMasCercano(id);
@@ -75,6 +76,8 @@ public class ClienteController {
         }
     }
 
+    //RF: 21
+    //Desc: Calcular la ruta más corta entre un almacén y un cliente específico.
     @GetMapping("/distancia/{idCliente}/{idAlmacen}")
     public ResponseEntity<Double> obtenerDistanciaClienteAlmacen(@PathVariable Integer idCliente, @PathVariable Integer idAlmacen) {
         Double distancia = clienteService.obtenerDistanciaClienteAlmacen(idCliente, idAlmacen);

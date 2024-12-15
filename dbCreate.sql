@@ -1,6 +1,12 @@
 -- 1. Drop database si ya existe (opcional)
 DROP DATABASE IF EXISTS ecommercedb;
 
+-- Agregamos la extensión de  PosGis
+CREATE EXTENSION postgis;
+
+-- Verificamos que versión tenemos
+SELECT PostGIS_Full_Version();
+
 
 -- 2. Crear la base de datos si no existe
 CREATE DATABASE ecommercedb

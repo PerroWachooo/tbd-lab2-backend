@@ -54,6 +54,8 @@ public class AlmacenController {
         return ResponseEntity.noContent().build();
     }
 
+
+    //¿Borrar Esto???
     @GetMapping("/km_almacen/{id}")
     public ResponseEntity<List<AlmacenEntity>> Conseguir_almacen_cercano() {
         try {
@@ -64,6 +66,7 @@ public class AlmacenController {
         }
     }
 
+    //RF 14: Ordenes más cercanas
     @GetMapping("/ordenes-cercanas/{idAlmacen}/{radioKm}")
     public ResponseEntity<List<OrdenEntity>> obtenerOrdenesCercanas(@PathVariable int idAlmacen, @PathVariable double radioKm) {
         try {
