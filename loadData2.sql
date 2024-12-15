@@ -83,4 +83,4 @@ INSERT INTO detalle_orden (id_detalle, id_orden, id_producto, cantidad, precio_u
 -- =============================
 INSERT INTO auditoria (id_auditoria, accion, nombre_tabla, id_registro, usuario, descripcion) VALUES
                                                                                                   (1, 'INSERT', 'usuario', 1, 'admin', '{"nombre": "Juan Pérez", "email": "juan.perez@example.com"}'),
-                                                                                                  (2, 'INSERT', 'categoria', 1, 'admin', '{"nombre": "Electrónica"}');
+                                                                                                  (2, 'INSERT', 'categoria', 2, 'admin', '{"nombre": "Electrónica"}');
