@@ -57,10 +57,10 @@ public class AlmacenController {
 
     //¿Borrar Esto???
     @GetMapping("/km_almacen/{id}")
-    public ResponseEntity<List<AlmacenEntity>> Conseguir_almacen_cercano() {
+    public ResponseEntity<List<AlmacenEntity>> Conseguir_almacen_cercano(@PathVariable Integer idCliente) {
         try {
-            List<AlmacenEntity> almacenes = almacenService.getAllAlmacenes();
-            return ResponseEntity.ok(almacenes);
+            List<AlmacenEntity> almacen = almacenService.conseguirAlmacenCercano(idCliente);
+            return ResponseEntity.ok(almacen);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

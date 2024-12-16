@@ -76,13 +76,15 @@ VALUES (1, 2, 3);
 -- COSAS DEL LABORATORIO 2
 
 
--- Creamos un trigger que almacene la posicion del usuario segun su geometría
+-- Creamos un trigger que almacene la posición del cliente según su geometría
 -- longitud y latitud.
 CREATE OR REPLACE FUNCTION insertar_pos_usuario() RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
+
+-- Vamos añadir en pos_usuario su id, latitud, logitud y posición geometrica.
 INSERT INTO pos_usuario (id_cliente, latitud, longitud, geom)
 VALUES (
            NEW.id_cliente,
@@ -90,12 +92,13 @@ VALUES (
            CAST(NEW.longitud AS DOUBLE PRECISION),
            ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
        )
+
+    -- Cada vez que se haga un UPDATE
     ON CONFLICT (id_cliente) DO UPDATE
                                      SET
                                      latitud = EXCLUDED.latitud,
                                      longitud = EXCLUDED.longitud,
                                      geom = EXCLUDED.geom;
-
 RETURN NEW;
 END;
 $$;
@@ -103,7 +106,7 @@ $$;
 ALTER FUNCTION insertar_pos_usuario() OWNER TO postgres;
 
 
--- Cada vez que se haga un post o un update, se activa el metodo
+-- Cada vez que se haga un post o un update, se activa el metodo.
 CREATE TRIGGER trg_insertar_pos_usuario
     AFTER INSERT OR UPDATE
     ON cliente
@@ -115,6 +118,8 @@ CREATE OR REPLACE FUNCTION insertar_pos_almacen() RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+
+-- Vamos a insertar dentro de pos_almacen su id, latitud, longitud y geometría.
 INSERT INTO pos_almacen (id_almacen, latitud, longitud, geom)
 VALUES (
            NEW.id_almacen,
@@ -122,25 +127,30 @@ VALUES (
            CAST(NEW.longitud AS DOUBLE PRECISION),
            ST_SetSRID(ST_MakePoint(CAST(NEW.longitud AS DOUBLE PRECISION), CAST(NEW.latitud AS DOUBLE PRECISION)), 4326)
        )
+
     ON CONFLICT (id_almacen) DO UPDATE
                                     SET
-                                        latitud = EXCLUDED.latitud,
+                                    latitud = EXCLUDED.latitud,
                                     longitud = EXCLUDED.longitud,
                                     geom = EXCLUDED.geom;
-
 RETURN NEW;
 END;
 $$;
 
--- Para que se active
+-- Para que se ejecute el trigger
 CREATE TRIGGER trg_insertar_pos_almacen
+
+    -- Cada vez que hace un post o un update, este trigger se activa.
     AFTER INSERT OR UPDATE ON almacen
-                        FOR EACH ROW
-                        EXECUTE FUNCTION insertar_pos_almacen();
+    FOR EACH ROW
+    EXECUTE FUNCTION insertar_pos_almacen();
 
 
 -- REQUERIMIENTO 14
-CREATE OR REPLACE FUNCTION obtener_ordenes_cercanas(id_almacen_input INTEGER, radio_km DOUBLE PRECISION DEFAULT 10.0)
+CREATE OR REPLACE FUNCTION obtener_ordenes_cercanas(
+    id_almacen_input INTEGER,
+    radio_km DOUBLE PRECISION DEFAULT 10.0
+)
 RETURNS TABLE (
     id_orden INTEGER,
     fecha_orden TIMESTAMP,
@@ -148,46 +158,58 @@ RETURNS TABLE (
     id_cliente INTEGER,
     id_almacen INTEGER,
     total NUMERIC
-) AS
-$$
+) AS $$
 DECLARE
 geom_almacen GEOGRAPHY;
+    longitud_almacen DOUBLE PRECISION;
+    latitud_almacen DOUBLE PRECISION;
 BEGIN
-    -- Obtener la geometría del almacén específico
-SELECT pa.geom::GEOGRAPHY INTO geom_almacen
-FROM almacen a
-         JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
-WHERE a.id_almacen = id_almacen_input;
+    -- Obtenemos las coordenadas del almacén
+SELECT
+    CAST(pos_almacen.longitud AS DOUBLE PRECISION),
+    CAST(pos_almacen.latitud AS DOUBLE PRECISION)
+INTO
+    longitud_almacen,
+    latitud_almacen
+FROM pos_almacen
+WHERE pos_almacen.id_almacen = id_almacen_input;
 
--- Verificar si se encontró el almacén
-IF geom_almacen IS NULL THEN
+-- Se crea la geometría del almacén
+geom_almacen := ST_MakePoint(longitud_almacen, latitud_almacen)::GEOGRAPHY;
+
+    -- Verificamos la existencia del almacén
+    IF geom_almacen IS NULL THEN
         RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
 END IF;
 
-   -- Devolver las órdenes cercanas al almacén
+    -- Vamos a retornar las ordenes del almacén específico
 RETURN QUERY
 SELECT
-    o.id_orden,
-    o.fecha_orden,
-    o.estado,
-    o.id_cliente,  -- Asegúrate de que estás usando el ID correcto aquí
-    o.id_almacen,
-    o.total
+    orden.id_orden,
+    orden.fecha_orden,
+    orden.estado,
+    orden.id_cliente,
+    orden.id_almacen,
+    orden.total
 FROM
-    orden o
-        JOIN cliente c ON o.id_cliente = c.id_cliente  -- Asegúrate de que estás usando el ID correcto aquí
-        JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente  -- Asegúrate de que los tipos coincidan
+    orden
+        JOIN
+    cliente ON orden.id_cliente = cliente.id_cliente
 WHERE
-    ST_DWithin(geom_almacen, pu.geom::GEOGRAPHY, radio_km * 1000); -- Asegurar que la unidad es metros
-
+  -- Filtramos por un almacén en específico
+    orden.id_almacen = id_almacen_input
+  AND
+  -- Se filtra por la por distancia
+    ST_DWithin(
+            ST_MakePoint(
+                    CAST(cliente.longitud AS DOUBLE PRECISION),
+                    CAST(cliente.latitud AS DOUBLE PRECISION)
+            )::GEOGRAPHY,
+            geom_almacen,
+            radio_km * 1000
+    );
 END;
-$$
-LANGUAGE plpgsql;
-
-
-
-
-
+$$ LANGUAGE plpgsql;
 
 
 -- REQUERIMIENTO 15
@@ -201,20 +223,20 @@ RETURNS TABLE (
 ) AS
 $$
 DECLARE
-geom_cliente GEOGRAPHY;
+    geom_cliente GEOGRAPHY;
 BEGIN
-    -- Obtener la geometría del cliente específico
+    -- Se obtiene la geometría del cliente que se ingreso
 SELECT pu.geom::GEOGRAPHY INTO geom_cliente
 FROM cliente c
          JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente
 WHERE c.id_cliente = id_cliente_input;
 
--- Verificar si se encontró el cliente
+-- Se verifica que el cliente exista
 IF geom_cliente IS NULL THEN
         RAISE EXCEPTION 'Cliente no encontrado con el ID: %', id_cliente_input;
 END IF;
 
-    -- Devolver el almacén más cercano al cliente
+    -- Se devuelve el almacén más cercano al cliente
 RETURN QUERY
 SELECT
     a.id_almacen,
@@ -227,7 +249,8 @@ FROM
         JOIN
     pos_almacen pa ON a.id_almacen = pa.id_almacen
 ORDER BY
-    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY) -- Ordenar por distancia ascendente
+    -- Se ordena por distancia ascendente
+    ST_Distance(geom_cliente, pa.geom::GEOGRAPHY)
     LIMIT 1;
 END;
 $$
@@ -241,32 +264,33 @@ CREATE OR REPLACE FUNCTION obtener_distancia_cliente_almacen(id_cliente_input IN
 RETURNS DOUBLE PRECISION AS
 $$
 DECLARE
-geom_cliente GEOGRAPHY;
+    geom_cliente GEOGRAPHY;
     geom_almacen GEOGRAPHY;
 BEGIN
-    -- Obtener la geometría del cliente
+    -- Se obtiene la geometría del cliente del mapa
 SELECT pu.geom::GEOGRAPHY INTO geom_cliente
-FROM cliente c  -- Cambiar a la tabla cliente
-         JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente  -- Asegúrate de usar el id_cliente aquí
+-- Utilizamos la tabla del cliente
+FROM cliente c
+         JOIN pos_usuario pu ON c.id_cliente::VARCHAR = pu.id_cliente
 WHERE c.id_cliente = id_cliente_input;
 
--- Verificar si se encontró el cliente
+-- Se verifica si se encontró el cliente
 IF geom_cliente IS NULL THEN
         RAISE EXCEPTION 'Cliente no encontrado con el ID: %', id_cliente_input;
 END IF;
 
-    -- Obtener la geometría del almacén
+    -- Se obtiene la geometría del almacén en el mapa. (Lo mismo que con cliente)
 SELECT pa.geom::GEOGRAPHY INTO geom_almacen
 FROM almacen a
          JOIN pos_almacen pa ON a.id_almacen = pa.id_almacen
 WHERE a.id_almacen = id_almacen_input;
 
--- Verificar si se encontró el almacén
+-- Se verifica si se encontro el almacén correctamente
 IF geom_almacen IS NULL THEN
         RAISE EXCEPTION 'Almacén no encontrado con el ID: %', id_almacen_input;
 END IF;
 
-    -- Calcular la distancia en kilómetros
+-- Se calcula la distancia que hay entre los puntos
 RETURN ST_Distance(geom_cliente, geom_almacen) / 1000; -- Devuelve la distancia en km
 END;
 $$
