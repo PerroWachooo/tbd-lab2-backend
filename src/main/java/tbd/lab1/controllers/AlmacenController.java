@@ -55,16 +55,7 @@ public class AlmacenController {
     }
 
 
-    //¿Borrar Esto???
-    @GetMapping("/km_almacen/{id}")
-    public ResponseEntity<List<AlmacenEntity>> Conseguir_almacen_cercano(@PathVariable Integer idCliente) {
-        try {
-            List<AlmacenEntity> almacen = almacenService.conseguirAlmacenCercano(idCliente);
-            return ResponseEntity.ok(almacen);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
+
 
     //RF 14: Ordenes más cercanas
     @GetMapping("/ordenes-cercanas/{idAlmacen}/{radioKm}")

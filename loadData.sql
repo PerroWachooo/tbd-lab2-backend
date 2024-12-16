@@ -355,11 +355,6 @@ BEGIN
 END;
 $$;
 
--- Para que se active
-CREATE TRIGGER trg_insertar_pos_almacen
-    AFTER INSERT OR UPDATE ON almacen
-    FOR EACH ROW
-EXECUTE FUNCTION insertar_pos_almacen();
 
 
 -- REQUERIMIENTO 14
