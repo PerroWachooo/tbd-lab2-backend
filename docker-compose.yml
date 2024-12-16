@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:12-bullseye
+    image: postgis/postgis:12-3.5-alpine
     restart: always
     # command: -c ssl=on -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
     environment:
@@ -26,18 +26,6 @@ services:
       - "8081:8080"
     volumes:
       - ./servers.json:/pgadmin4/servers.json
-    networks:
-      - mynet
-
-  jenkins:
-    image: jenkins/jenkins:lts
-    user: root
-    volumes:
-      - jenkins_data:/var/jenkins_data
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "8080:8080"
-      - "50000:50000"
     networks:
       - mynet
 
