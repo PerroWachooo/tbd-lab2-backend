@@ -105,7 +105,7 @@ public class ClienteRepository implements ClienteRepositoryInt {
     }
 
     public List<AlmacenEntity> getAlmacenMasCercano(Integer idCliente) {
-        String sql = "SELECT id_almacen, nombre, posicion, latitud, longitud FROM obtener_almacen_mas_cercano3(:id_cliente_input)";
+        String sql = "SELECT id_almacen, nombre, posicion, latitud, longitud FROM obtener_almacen_mas_cercano(:id_cliente_input)";
         try (Connection con = sql2o.open()) {
             return con.createQuery(sql)
                     .addParameter("id_cliente_input", idCliente)
